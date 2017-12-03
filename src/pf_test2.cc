@@ -13,9 +13,9 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
-#include "pf.h"
-#include "pf_internal.h"
-#include "pf_hashtable.h"
+#include <pf.h>
+#include <pf_internal.h>
+#include <pf_hashtable.h>
 
 using namespace std;
 
@@ -24,7 +24,7 @@ using namespace std;
 // place the initializer and then the final call to printout the statistics
 // once main has finished
 #ifdef PF_STATS
-#include "statistics.h"
+#include <statistics.h>
 
 // This is defined within pf_buffermgr.cc
 extern StatisticsMgr *pStatisticsMgr;

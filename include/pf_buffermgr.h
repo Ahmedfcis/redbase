@@ -15,8 +15,8 @@
 #ifndef PF_BUFFERMGR_H
 #define PF_BUFFERMGR_H
 
-#include "pf_internal.h"
-#include "pf_hashtable.h"
+#include <pf_internal.h>
+#include <pf_hashtable.h>
 
 //
 // Defines

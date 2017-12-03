@@ -8,6 +8,12 @@ src/pf_manager.cc src/pf_pagehandle.cc src/pf_statistics.cc src/statistics.cc)
 include_directories(include)
 
 add_library(PF ${PF_SOURCES})
+add_executable(pf_test1 src/pf_test1.cc)
+add_executable(pf_test2 src/pf_test2.cc)
+add_executable(pf_test3 src/pf_test3.cc)
+target_link_libraries(pf_test1 PF)
+target_link_libraries(pf_test2 PF)
+target_link_libraries(pf_test3 PF)
 
 
 include(CTest)
