@@ -9,12 +9,14 @@
 struct RM_FILE_HEADER{
     int fileType;
     int recordSize;
+    int numOfRecordPerPage;
     PageNum firstFreePage;
 };
 
 struct RM_PAGE_HEADER{
-    int headerSize;
-    unsigned char flags[];
+    int             headerSize;
+    PageNum         nextFreePage;
+    unsigned char   flags[];
 };
 
 #endif //_RM_INTERNAL_H_

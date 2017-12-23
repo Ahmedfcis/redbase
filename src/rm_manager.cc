@@ -24,6 +24,7 @@ RC RM_Manager::CreateFile (const char *fileName, int recordSize){
     fh.fileType = RM_FILE_TYPE;
     fh.firstFreePage = BAD_PAGE_NUM;
     fh.recordSize = recordSize;
+    fh.numOfRecordPerPage = (PF_PAGE_SIZE - sizeof(RM_PAGE_HEADER)) / (recordSize + 1);
 
     PF_FileHandle fileHandle;
 

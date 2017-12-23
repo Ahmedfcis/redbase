@@ -38,6 +38,13 @@ public:
 
     // Return the RID associated with the record
     RC GetRid (RID &rid) const;
+private:
+    friend class RM_FileHandle;
+    RC  SetData(const RID& rid,char* pData,int size);
+
+    RID     rid;
+    char*   pData;
+    int     size;
 };
 
 //
@@ -64,6 +71,10 @@ private:
     friend class RM_Manager;
     PF_FileHandle   pfFileHandle;
     RM_FILE_HEADER*  pFileHeader;
+
+    RC UpdateRec  (const char* pData,PageNum pageNum, SlotNum slotNum);
+    RC GetFirstFreeSlot(PageNum& pageNum,SlotNum& slotNum);
+    RC UpdateFreePageList(PageNum pageNum);
 };
 
 //
@@ -111,5 +122,7 @@ void RM_PrintError(RC rc);
 #define RM_INVALID_RECORD_SIZE  START_RM_WARN + 11
 
 #define RM_INVALID_FILE_FORMAT  START_RM_ERR - 10 //first 10 reserved for RID
+#define RM_INVALID_RECORD       START_RM_ERR - 11
+#define RM_INVALID_PAGE_FORMAT  START_RM_ERR - 12
 
 #endif
