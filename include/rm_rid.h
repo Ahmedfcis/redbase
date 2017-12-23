@@ -15,7 +15,7 @@
 //
 // PageNum: uniquely identifies a page in a file
 //
-typedef int PageNum;
+typedef size_t PageNum;
 
 //
 // SlotNum: uniquely identifies a record in a page
@@ -35,6 +35,13 @@ public:
     RC GetSlotNum(SlotNum &slotNum) const;         // Return slot number
 
 private:
+    PageNum pageNum;
+    SlotNum slotNum;
 };
+
+#define BAD_PAGE_NUM    0xffffffffffffffff
+#define BAD_SLOT_NUM    -1
+
+#define RM_INVALID_RID      START_RM_WARN + 1
 
 #endif

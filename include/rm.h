@@ -22,6 +22,8 @@
 #include "rm_rid.h"
 #include "pf.h"
 
+struct RM_FILE_HEADER;
+
 //
 // RM_Record: RM Record interface
 //
@@ -57,6 +59,11 @@ public:
     // Forces a page (along with any contents stored in this class)
     // from the buffer pool to disk.  Default value forces all pages.
     RC ForcePages (PageNum pageNum = ALL_PAGES);
+
+private:
+    friend class RM_Manager;
+    PF_FileHandle   pfFileHandle;
+    RM_FILE_HEADER*  pFileHeader;
 };
 
 //
@@ -91,11 +98,18 @@ public:
     RC OpenFile   (const char *fileName, RM_FileHandle &fileHandle);
 
     RC CloseFile  (RM_FileHandle &fileHandle);
+private:
+    PF_Manager& pfm;
 };
 
 //
 // Print-error function
 //
 void RM_PrintError(RC rc);
+
+#define RM_EOF                  START_RM_WARN + 10 //first 10 reserved for RID
+#define RM_INVALID_RECORD_SIZE  START_RM_WARN + 11
+
+#define RM_INVALID_FILE_FORMAT  START_RM_ERR - 10 //first 10 reserved for RID
 
 #endif
