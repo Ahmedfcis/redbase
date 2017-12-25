@@ -112,6 +112,70 @@ RC RM_FileHandle::UpdateRec  (const RM_Record &rec){              // Update a re
 
     return UpdateRec(rec.pData,pageNum,slotNum);
 }
+
+    // Forces a page (along with any contents stored in this class)
+    // from the buffer pool to disk.  Default value forces all pages.
+RC RM_FileHandle::ForcePages (PageNum pageNum){
+    return pfFileHandle.ForcePages(pageNum);
+}
+
+RC RM_FileHandle::GetNext(RID& rid) const{
+
+    RC rc;
+    PF_PageHandle page;
+    PageNum pageNum,startPageNum;
+    SlotNum startSlotNum=0;
+
+    //If Frist call
+    if(rid.GetPageNum(startPageNum) == RM_INVALID_RID){
+        //scape the first page which contains RM header
+        if(rc = pfFileHandle.GetFirstPage(page))
+            return RM_INVALID_FILE_FORMAT;
+
+        page.GetPageNum(pageNum);
+        pfFileHandle.UnpinPage(pageNum);
+
+        if(rc = pfFileHandle.GetNextPage(pageNum,page))
+            return (rc != PF_EOF)? rc: RM_EOF;
+    }
+    else{
+        pageNum = startPageNum;
+        if(rc = pfFileHandle.GetThisPage(pageNum,page))
+            return rc;
+    }
+
+    if(rid.GetSlotNum(startSlotNum)==OK_RC)
+        startSlotNum++;
+
+    do{
+
+        page.GetPageNum(pageNum);
+
+        char* pPageData;
+        if(rc = page.GetData(pPageData)){
+            pfFileHandle.UnpinPage(pageNum);
+            return rc;
+        }
+
+        RM_PAGE_HEADER* pPageHd;
+        pPageHd = (RM_PAGE_HEADER*)pPageData;
+
+        //loop on all page slots
+        int i = (pageNum == startPageNum)? startSlotNum:0;
+
+        for(;i < pFileHeader->numOfRecordPerPage;i++){
+            if(pPageHd->flags[i/8] & 1 << (i%8)){
+                rid = RID(pageNum,i);
+                return OK_RC;
+            }
+        }
+
+        pfFileHandle.UnpinPage(pageNum);
+    }while(rc = pfFileHandle.GetNextPage(pageNum,page));
+
+    return (rc != PF_EOF)? rc: RM_EOF;
+}
+
 RC RM_FileHandle::UpdateRec  (const char* pData,PageNum pageNum, SlotNum slotNum){
     RC rc;
     PF_PageHandle page;
@@ -137,11 +201,6 @@ RC RM_FileHandle::UpdateRec  (const char* pData,PageNum pageNum, SlotNum slotNum
     pfFileHandle.UnpinPage(pageNum);
     return OK_RC;
 }
-    // Forces a page (along with any contents stored in this class)
-    // from the buffer pool to disk.  Default value forces all pages.
-RC RM_FileHandle::ForcePages (PageNum pageNum){
-    return pfFileHandle.ForcePages(pageNum);
-}
 
 RC RM_FileHandle::GetFirstFreeSlot(PageNum& pageNum,SlotNum& slotNum){
     RC rc;
@@ -159,6 +218,7 @@ RC RM_FileHandle::GetFirstFreeSlot(PageNum& pageNum,SlotNum& slotNum){
         pPageHd = (RM_PAGE_HEADER*)pPageData;
         int flagsSize = (pFileHeader->numOfRecordPerPage+7) / 8;
         pPageHd->headerSize = sizeof(RM_PAGE_HEADER) + flagsSize;
+        pPageHd->nextFreePage = BAD_PAGE_NUM;
         std::memset(pPageHd->flags,0,flagsSize);
 
         page.GetPageNum(pageNum);
@@ -194,7 +254,6 @@ RC RM_FileHandle::GetFirstFreeSlot(PageNum& pageNum,SlotNum& slotNum){
 
 RC RM_FileHandle::UpdateFreePageList(PageNum pageNum){
 
-    //TODO:update to reuse deleted slotes in other pages
     RC rc;
     PF_PageHandle page;
     if(rc = pfFileHandle.GetThisPage(pageNum,page))
@@ -209,15 +268,26 @@ RC RM_FileHandle::UpdateFreePageList(PageNum pageNum){
     RM_PAGE_HEADER* pPageHd;
     pPageHd = (RM_PAGE_HEADER*)pPageData;
 
+    int nfreeSlots=0;
     for(int i=0;i < pFileHeader->numOfRecordPerPage;i++){
-        if((pPageHd->flags[i/8] & 1 << (i%8)) == 0){
-            pFileHeader->firstFreePage = pageNum;
-            pfFileHandle.UnpinPage(pageNum);
-            return OK_RC;
-        }
+        if((pPageHd->flags[i/8] & 1 << (i%8)) == 0)
+            nfreeSlots++;
     }
 
-    pFileHeader->firstFreePage = BAD_PAGE_NUM;
+    //If a record is delete and page not already in free list
+    if(nfreeSlots == 1 && pFileHeader->firstFreePage != pageNum){
+        pPageHd->nextFreePage = pFileHeader->firstFreePage;
+        pFileHeader->firstFreePage = pageNum;
+        pfFileHandle.MarkDirty(pageNum);
+    }
+
+    //If a record is inserted and no more free slots in page
+    if(nfreeSlots == 0 && pFileHeader->firstFreePage == pageNum){
+        pFileHeader->firstFreePage = pPageHd->nextFreePage;
+        pPageHd->nextFreePage = BAD_PAGE_NUM;
+        pfFileHandle.MarkDirty(pageNum);
+    }
+
     pfFileHandle.UnpinPage(pageNum);
     return OK_RC;
 }

@@ -67,8 +67,11 @@ public:
     // from the buffer pool to disk.  Default value forces all pages.
     RC ForcePages (PageNum pageNum = ALL_PAGES);
 
+    RC GetNext(RID& rid) const;
+
 private:
     friend class RM_Manager;
+    friend class RM_FileScan;
     PF_FileHandle   pfFileHandle;
     RM_FILE_HEADER*  pFileHeader;
 
@@ -94,6 +97,16 @@ public:
                   ClientHint pinHint = NO_HINT); // Initialize a file scan
     RC GetNextRec(RM_Record &rec);               // Get next matching record
     RC CloseScan ();                             // Close the scan
+
+private:
+    const RM_FileHandle *fileHandle;
+    AttrType   attrType;
+    int        attrLength;
+    int        attrOffset;
+    CompOp     compOp;
+    char       *value;
+    ClientHint pinHint;
+    RID        current;
 };
 
 //
@@ -120,6 +133,7 @@ void RM_PrintError(RC rc);
 
 #define RM_EOF                  START_RM_WARN + 10 //first 10 reserved for RID
 #define RM_INVALID_RECORD_SIZE  START_RM_WARN + 11
+#define RM_INVALID_SCAN         START_RM_WARN + 12
 
 #define RM_INVALID_FILE_FORMAT  START_RM_ERR - 10 //first 10 reserved for RID
 #define RM_INVALID_RECORD       START_RM_ERR - 11
