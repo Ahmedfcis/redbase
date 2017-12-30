@@ -1,0 +1,24 @@
+language: cpp
+compiler: g++
+
+branches:
+  only: master
+
+dist: trusty
+addons:
+  - apt:
+    sources:
+      - george-edison55-precise-backports
+    packages:
+      - cmake-data
+      - cmake
+  - apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-5
+
+script:
+  - export CC="gcc-5"
+  - export CXX="g++-5"
+  - mkdir build && cd build && cmake .. && make && cd ..
