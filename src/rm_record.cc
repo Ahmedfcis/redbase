@@ -11,6 +11,26 @@ RM_Record::~RM_Record(){
         delete[] pData;
 }
 
+RM_Record::RM_Record(RM_Record&& r){
+    this->pData = r.pData;
+    r.pData = nullptr;
+
+    this->rid = r.rid;
+    this->size = r.size;
+}
+
+RM_Record& RM_Record::operator = (RM_Record&& r){
+    if(this->pData)
+        delete[] pData;
+
+    this->pData = r.pData;
+    r.pData = nullptr;
+
+    this->rid = r.rid;
+    this->size = r.size;
+
+    return *this;
+}
     // Return the data corresponding to the record.  Sets *pData to the
     // record contents.
 RC RM_Record::GetData(char *&pData) const{

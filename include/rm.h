@@ -32,6 +32,11 @@ public:
     RM_Record ();
     ~RM_Record();
 
+    RM_Record(const RM_Record& r)=delete;
+    RM_Record(RM_Record&& r);
+
+    RM_Record& operator = (const RM_Record& r)=delete;
+    RM_Record& operator = (RM_Record&& r);
     // Return the data corresponding to the record.  Sets *pData to the
     // record contents.
     RC GetData(char *&pData) const;
@@ -107,6 +112,8 @@ private:
     char       *value;
     ClientHint pinHint;
     RID        current;
+
+    bool CheckRecord(RM_Record& r);
 };
 
 //

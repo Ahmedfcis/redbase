@@ -223,6 +223,8 @@ RC RM_FileHandle::GetFirstFreeSlot(PageNum& pageNum,SlotNum& slotNum){
 
         page.GetPageNum(pageNum);
         pfFileHandle.MarkDirty(pageNum);
+
+        pFileHeader->firstFreePage = pageNum;
     }
     else{
         if(rc = pfFileHandle.GetThisPage(pFileHeader->firstFreePage,page))

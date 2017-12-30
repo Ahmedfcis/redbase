@@ -28,3 +28,7 @@ RC RID::GetSlotNum(SlotNum &slotNum) const{         // Return slot number
     slotNum = this->slotNum;
     return OK_RC;
 }
+
+bool RID::operator == (const RID& rid) const{
+    return ((rid.pageNum == pageNum) && (rid.slotNum == slotNum));
+}
