@@ -7,16 +7,5 @@ compiler: g++
 branches:
   only: master
 
-before_script:
-  addons:
-    apt:
-      sources:
-        - ubuntu-toolchain-r-test
-        - george-edison55-precise-backports
-      packages:
-        - cmake-data
-        - cmake
-        - g++-5
-
 script:
   - mkdir build && cd build && cmake .. && make && cd ..
